@@ -17,8 +17,8 @@ const app = express();
 app.use(express.json({ limit: "2mb" }));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3-pro-image";
 const PORT = process.env.PORT || 8788;
 
 if (!GEMINI_API_KEY) {
@@ -52,7 +52,11 @@ visuel aide à la lecture, et garde ta réponse vocale courte.
 Pour une ANALYSE DE DONNÉES ou un rapport chiffré, appelle display_report
 avec des KPIs, un graphique et/ou un tableau.
 
-Ne lis jamais de longues listes à voix haute : résume, et affiche le détail.`;
+Ne lis jamais de longues listes à voix haute : résume, et affiche le détail.
+
+Dès que la demande porte sur un post LinkedIn, une liste, un résultat détaillé
+ou des chiffres, appelle l'outil correspondant plutôt que de tout dire à
+l'oral — c'est une règle systématique, pas une option.`;
 
 // ---------------------------------------------------------------- déclaration des outils (function calling Gemini)
 
