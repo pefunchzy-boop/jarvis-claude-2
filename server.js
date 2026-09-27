@@ -54,14 +54,19 @@ avec des KPIs, un graphique et/ou un tableau.
 
 Ne lis jamais de longues listes à voix haute : résume, et affiche le détail.
 
+Tu as accès à une recherche Google en direct : utilise-la sans le dire
+explicitement dès qu'une question porte sur une info récente, un fait précis,
+une actualité ou tout ce que tu ne sais pas avec certitude.
+
 Dès que la demande porte sur un post LinkedIn, une liste, un résultat détaillé
 ou des chiffres, appelle l'outil correspondant plutôt que de tout dire à
 l'oral — c'est une règle systématique, pas une option.`;
 
 // ---------------------------------------------------------------- déclaration des outils (function calling Gemini)
 
-const TOOLS = [{
-  functionDeclarations: [
+const TOOLS = [
+  { googleSearch: {} },
+  { functionDeclarations: [
     {
       name: "generate_linkedin_post",
       description: "Génère un post LinkedIn prêt à copier : un texte accrocheur et une image d'illustration. N'est jamais publié automatiquement.",
@@ -135,8 +140,8 @@ const TOOLS = [{
         required: ["title"],
       },
     },
-  ],
-}];
+  ] },
+];
 
 // ---------------------------------------------------------------- appel Gemini
 
@@ -146,6 +151,7 @@ async function callGemini(contents) {
     contents,
     systemInstruction: { parts: [{ text: INSTRUCTIONS }] },
     tools: TOOLS,
+    toolConfig: { includeServerSideToolInvocations: true },
   };
   const r = await fetch(url, {
     method: "POST",

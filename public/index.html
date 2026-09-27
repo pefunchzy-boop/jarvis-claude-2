@@ -66,6 +66,21 @@
   }
   #status b { color: var(--cyan); font-weight: 600; text-shadow: 0 0 14px rgba(64,220,255,.9); }
   #hint { position: absolute; bottom: 22px; font-size: 11px; color: var(--dim); font-family: var(--font-mono); letter-spacing: .2em; text-align: center; padding: 0 20px; }
+  #textform {
+    display: flex; gap: 8px; margin-top: 14px; width: min(420px, 78vw);
+  }
+  #textinput {
+    flex: 1; background: rgba(6,14,24,.75); border: 1px solid var(--line);
+    color: var(--text); font-family: var(--font-hud); font-size: 14px;
+    padding: 9px 12px; outline: none; border-radius: 2px;
+  }
+  #textinput::placeholder { color: var(--dim); }
+  #textinput:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(64,220,255,.15); }
+  #textform button {
+    background: rgba(64,220,255,.10); border: 1px solid var(--cyan-dim); color: var(--cyan);
+    font-size: 16px; width: 38px; cursor: pointer; border-radius: 2px;
+  }
+  #textform button:hover { background: rgba(64,220,255,.2); }
   #transcript {
     position: absolute; top: 54px; left: 50%; transform: translateX(-50%);
     max-width: 68%; text-align: center; font-size: 15px; font-weight: 500;
@@ -190,6 +205,10 @@
     <div id="cards"></div>
     <canvas id="orb"></canvas>
     <div id="status">appuyez sur l'orbe pour <b>parler</b></div>
+    <form id="textform">
+      <input id="textinput" type="text" placeholder="…ou écrivez ici" autocomplete="off">
+      <button type="submit">➤</button>
+    </form>
     <div id="hint">GEMINI · VOIX NAVIGATEUR · 100% GRATUIT</div>
   </div>
   <div id="report">
@@ -393,8 +412,15 @@ function speak(text) {
 /* ---------------------------------------------------------- chat avec le serveur (Gemini) */
 async function sendMessage(text) {
   addLog("user", text);
-  statusEl.innerHTML = "<b>réflexion…</b>";
   transcriptEl.textContent = "";
+  statusEl.innerHTML = "<b>réflexion…</b>";
+  energyTarget = 0.18;
+
+  // le premier appel peut être lent (réveil du serveur gratuit, ou recherche
+  // web en cours) : on informe l'utilisateur au lieu de le laisser sans retour
+  const t1 = setTimeout(() => { statusEl.innerHTML = "<b>recherche en cours…</b>"; }, 4000);
+  const t2 = setTimeout(() => { statusEl.innerHTML = "<b>réveil du serveur…</b> patientez"; }, 12000);
+
   try {
     const res = await fetch("/api/chat", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -414,9 +440,24 @@ async function sendMessage(text) {
     speak(res.spoken);
   } catch (err) {
     statusEl.innerHTML = `<b style="color:var(--err)">erreur</b> · ${err.message}`;
+    energyTarget = 0;
     addLog("jarvis", `Erreur : ${err.message}`);
+  } finally {
+    clearTimeout(t1); clearTimeout(t2);
   }
 }
+
+/* ---------------------------------------------------------- champ texte */
+const textForm = document.getElementById("textform");
+const textInput = document.getElementById("textinput");
+textForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const val = textInput.value.trim();
+  if (!val) return;
+  textInput.value = "";
+  if (listening) recognition.stop();
+  sendMessage(val);
+});
 
 function applyAction(action) {
   if (action.kind === "card") {
